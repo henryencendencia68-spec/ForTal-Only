@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unlock My Heart</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            --heart-empty: #331a1e;
+            --heart-full: #ff0037;
+            --text-color: #ffffff;
+            --accent: #ff8fa3;
+            --shadow: rgba(255, 0, 55, 0.3);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text-color);
+            font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            user-select: none;
+            animation: bgPulse 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .container { 
+
+            text-align: center; 
+            max-width: 500px; 
+            padding: 30px; 
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        }
+
+        /* The Heart Progress */
+        .heart-wrapper {
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.15s ease, filter 0.15s ease;
+            margin: 0 auto;
+            width: fit-content;
+        }
+
+        .heart-wrapper:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .heart-wrapper:active {
+            transform: scale(0.95);
+        }
+
+        .heart-icon {
+            font-size: 160px;
+            color: var(--heart-empty);
+            filter: drop-shadow(0 0 15px var(--shadow));
+            transition: filter 0.3s ease;
+        }
+
+        .heart-fill {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            font-size: 160px;
+            color: var(--heart-full);
+
+            clip-path: inset(100% 0 0 0);
+            transition: clip-path 0.3s ease, filter 0.3s ease;
+            filter: drop-shadow(0 0 25px rgba(255, 0, 55, 0.9));
+        }
+
+        .instructions {
+            margin-top: 30px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            opacity: 0.7;
+            animation: pulse 2s infinite;
+            font-weight: 300;
+        }
+
+        @keyframes pulse { 
+            0%, 100% { opacity: 0.5; transform: scale(1); } 
+            50% { opacity: 0.9; transform: scale(1.02); } 
+        }
+
+        /* Secret Message Reveal */
+        #secretContent {
+            display: none;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(25px);
+            border-radius: 28px;
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: left;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+            max-height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--accent) transparent;
+        }
+
+        #secretContent::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        #secretContent::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        #secretContent::-webkit-scrollbar-thumb {
+            background: var(--accent);
+            border-radius: 3px;
+        }
+
+        h1 { 
+            font-size: 2rem; 
+            margin-bottom: 25px; 
+            color: var(--heart-full); 
+            text-align: center; 
+            text-shadow: 0 0 10px var(--shadow);
+        }
+        
+        .reveal-text {
+            opacity: 0;
+            transform: translateY(20px) rotateX(10deg);
+            transition: all 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            margin-bottom: 20px;
+            line-height: 1.7;
+            font-size: 1.1rem;
+            perspective: 1000px;
+        }
+
+        .reveal-text.visible { 
+            opacity: 1; 
+            transform: translateY(0) rotateX(0deg); 
+        }
+
+        .highlight { 
+            color: var(--accent); 
+            font-weight: bold; 
+            text-shadow: 0 0 5px var(--shadow);
+        }
+
+        /* Mobile optimizations */
+        @media (max-width: 600px) {
+
+            .heart-icon, .heart-fill { font-size: 120px; }
+            .container { padding: 20px; max-width: 90vw; }
+            h1 { font-size: 1.6rem; }
+            .reveal-text { font-size: 1rem; }
+        }
+
+        /* Accessibility */
+        .heart-wrapper:focus {
+            outline: 2px solid var(--accent);
+            outline-offset: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="gameUI">
+        <div class="heart-wrapper" onclick="handleTap()" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' ') handleTap()">
+            <div class="heart-icon">❤️</div>
+            <div class="heart-fill" id="fill">❤️</div>
+        </div>
+        <div class="instructions" id="hint">Tap rapidly to unlock my heart</div>
+    </div>
+
+    <div class="container" id="secretContent">
+        <h1 class="reveal-text">Happy Valentine's Day, tal²</h1>
+        
+        <p class="reveal-text">Di man ko kahatag ug flowers. But I didn't want the day to pass without you receiving something from me. This website is my way of making sure you know you aren't forgotten.</p>
+        
+        <p class="reveal-text">HAHAAHAH mao ni akong version sa digital bouquet. I worked on this because a person as special as you deserves to be remembered, regardless of the distance.</p>
+        
+        <p class="reveal-text">I just want to remind you that no matter how much time passes or how quiet things get, <span class="highlight">I still remember you.</span></p>
+        
+        <p class="reveal-text">You still hold that same place in my heart, and I still 
+
+care for you as much as I did before.</p>
+        
+        <p class="reveal-text" style="text-align: center; font-style: italic; margin-top: 30px; font-size: 1.2rem;">I hope you’re doing well today. Always stay safe, tal². ❤️</p>
+    </div>
+
+    <script>
+        let progress = 100;
+        let isUnlocked = false;
+        let tapCount = 0;
+
+        function handleTap() {
+            if (isUnlocked) return;
+
+            progress -= 5; // Slightly faster for better UX
+            tapCount++;
+            const fillElement = document.getElementById('fill');
+            fillElement.style.clipPath = `inset(${progress}% 0 0 0)`;
+
+            // Dynamic scaling based on progress
+            const scale = 1 + (100 - progress) / 500;
+            document.getElementById('gameUI').style.transform = `scale(${scale})`;
+
+            // Update hint text for engagement
+            const hint = document.getElementById('hint');
+            if (tapCount < 10) {
+                hint.textContent = "Keep tapping!";
+            } else if (tapCount < 20) {
+                hint.textContent = "Almost there!";
+            } else {
+                hint.textContent = "You're unlocking it!";
+            }
+
+            if (progress <= 0) { unlock(); }
+        }
+
+        function unlock() {
+            isUnlocked = true;
+            document.getElementById('gameUI').style.display = 'none';
+
+            document.getElementById('secretContent').style.display = 'block';
+            
+            // Staggered text reveal with improved timing
+            const lines = document.querySelectorAll('.reveal-text');
+            lines.forEach((line, index) => {
+                setTimeout(() => {
+                    line.classList.add('visible');
+                }, index * 800 + 500); // Smoother reveal
+            });
+
+            // Enhanced confetti
+            confetti({
+                particleCount: 300,
+                spread: 120,
+                origin: { y: 0.6 },
+                colors: ['#ff0037', '#ffffff', '#ff8fa3', '#ffb3ba'],
+                gravity: 0.8,
+                drift: 0.1
+            });
+
+            // Add a subtle heartbeat animation to the title
+            setTimeout(() => {
+                const title = document.querySelector('h1');
+                title.style.animation = 'heartbeat 1.5s infinite';
+            }, lines.length * 800 + 1000);
+        }
+
+        // Drain progress if they stop tapping, with visual feedback
+        setInterval(() => {
+            if (!isUnlocked && progress < 100) {
+                progress += 0.5; // Slower drain for patience
+                document.getElementById('fill').style.clipPath = `inset(${progress}% 0 0 0)`;
+                document.getElementById('gameUI').style.transform = `scale(${1 + (100 - progress) / 500})`;
+            }
+        }, 200);
+
+        // Heartbeat animation for title
+        const style = document.createElement('style');
+
+        style.textContent = `
+            @keyframes heartbeat {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
